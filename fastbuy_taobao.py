@@ -15,11 +15,8 @@ import datetime
 import time
 import random
 
-
 # ==== 设定抢购时间 （修改此处，指定抢购时间点）====
-BUY_TIME = "2018-10-14 19:31:30"
-
-
+BUY_TIME = "2021-01-16 20:00:00"
 
 # ====  标识登录状态、重试次数 ====
 MAX_LOGIN_RETRY_TIMES = 6
@@ -34,7 +31,7 @@ if now_time > buy_time_object:
     exit(0)
 
 print("正在打开chrome浏览器...")
-#让浏览器不要显示当前受自动化测试工具控制的提醒
+# 让浏览器不要显示当前受自动化测试工具控制的提醒
 option = webdriver.ChromeOptions()
 option.add_argument('disable-infobars')
 driver = webdriver.Chrome(chrome_options=option)
@@ -57,6 +54,7 @@ def __login_operates():
         login_success = True
         current_retry_login_times = 0
 
+
 def login():
     print("开始尝试登录...")
     __login_operates()
@@ -74,17 +72,20 @@ def login():
     if not login_success:
         print("规定时间内没有扫码登录淘宝成功，执行失败，退出脚本!!!")
         exit(0);
-    
-
 
     # time.sleep(3)
     now = datetime.datetime.now()
     print('login success:', now.strftime('%Y-%m-%d %H:%M:%S'))
 
+
 def __refresh_keep_alive():
-    #重新加载购物车页面，定时操作，防止长时间不操作退出登录
+    # 重新加载购物车页面，定时操作，防止长时间不操作退出登录
     driver.get("https://cart.taobao.com/cart.htm")
     print("刷新购物车界面，防止登录超时...")
+    print("距离抢购时间开始还有：" + str((datetime.datetime.strptime(BUY_TIME, '%Y-%m-%d %H:%M:%S') - datetime.datetime.now()).seconds) + '秒')
+    if driver.find_element_by_id("J_SelectAll1"):
+        driver.find_element_by_id("J_SelectAll1").click()
+        print("已经选中购物车中全部商品 ...")
     time.sleep(60)
 
 
@@ -97,16 +98,14 @@ def keep_login_and_wait():
         else:
             print("抢购时间点将近，停止自动刷新，准备进入抢购阶段...")
             break
-    
-
 
 
 def buy():
-    #打开购物车
+    # 打开购物车
     driver.get("https://cart.taobao.com/cart.htm")
     time.sleep(1)
- 
-    #点击购物车里全选按钮
+
+    # # 点击购物车里全选按钮
     if driver.find_element_by_id("J_SelectAll1"):
         driver.find_element_by_id("J_SelectAll1").click()
         print("已经选中购物车中全部商品 ...")
@@ -127,7 +126,7 @@ def buy():
             retry_submit_times = retry_submit_times + 1
 
             try:
-                #点击结算按钮
+                # 点击结算按钮
                 if driver.find_element_by_id("J_Go"):
                     driver.find_element_by_id("J_Go").click()
                     print("已经点击结算按钮...")
@@ -142,7 +141,7 @@ def buy():
                             else:
                                 print("提交订单失败...")
                         except Exception as ee:
-                            #print(ee)
+                            # print(ee)
                             print("没发现提交订单按钮，可能页面还没加载出来，重试...")
                             click_submit_times = click_submit_times + 1
                             time.sleep(0.1)
@@ -156,4 +155,3 @@ def buy():
 login()
 keep_login_and_wait()
 buy()
- 
